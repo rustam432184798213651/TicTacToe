@@ -1,11 +1,13 @@
 package com.example.tictactoe
 
+import android.util.Log
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,8 +29,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,13 +64,32 @@ fun TTTScreen() {
 
     val moves = remember {mutableStateListOf<Boolean?>(true, null, false, null, true, false, null, null, null) }
 
+    val onTap: (Offset) -> Unit = {
+        if (playerTurn.value) {
+            // x and y are up to 1000. Overall we have 3 position.
+            val norm = 1000.0 / 600.0 // Virtual size to real size
+            val x = (it.x*norm / 333).toInt()
+            val y = (it.y*norm / 333).toInt()
+            val posInMoves = y * 3 + x
+            Log.d("TAG", "x: $x")
+            Log.d("TAG","y: $y")
+            // Can set only if position is null
+            if (moves[posInMoves] == null) {
+                // Put tic
+                moves[posInMoves] = true
+                // After that AI turn
+                playerTurn.value = false
+            }
+        }
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Tic Tac Toe", fontSize = 30.sp, modifier = Modifier.padding(16.dp))
 
 
         Header(playerTurn.value)
 
-        Board(moves)
+        Board(moves, onTap)
     }
 
 
@@ -102,8 +125,18 @@ fun Header(playerTurn: Boolean) {
 }
 
 @Composable
-fun Board(moves: List<Boolean?>) {
-    Box(modifier = Modifier.aspectRatio(1f).padding(32.dp).background(Color.LightGray)) {
+fun Board(moves: List<Boolean?>, onTap: (Offset) -> Unit) {
+    Box(modifier = Modifier
+                            .aspectRatio(1f)
+                            .padding(32.dp)
+                            .background(Color.LightGray)
+                            .pointerInput(Unit) {
+                                detectTapGestures (
+                                    onTap = onTap
+                                )
+                            }
+    ) {
+
         Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize(1f)) {
             Row(modifier = Modifier
                                   .height(2.dp)
