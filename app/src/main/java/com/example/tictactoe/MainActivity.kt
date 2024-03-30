@@ -20,13 +20,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -38,6 +41,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tictactoe.ui.theme.TicTacToeTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +61,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+//fun calculate_best_decisions() {
+//    val win_state_for_player = mutableStateListOf(
+//        mutableStateListOf(0, 3, 6),
+//        mutableStateListOf(0, 1, 2),
+//        mutableStateListOf(6, 7, 8),
+//        mutableStateListOf(2, 5, 8),
+//        mutableStateListOf(0, 4, 8),
+//        mutableStateListOf(3, 4, 5),
+//        mutableStateListOf(1, 4, 7)
+//    )
+//
+//}
+
 
 @SuppressLint("RememberReturnType")
 @Composable
@@ -90,6 +110,25 @@ fun TTTScreen() {
         Header(playerTurn.value)
 
         Board(moves, onTap)
+
+        if (!playerTurn.value) {
+            CircularProgressIndicator(color = Color.Red, modifier = Modifier.padding(16.dp))
+
+            val coroutineScope = rememberCoroutineScope()
+            LaunchedEffect(key1 = Unit) {
+                coroutineScope.launch {
+                    delay(1500L)
+                    while(true) {
+                        val i = Random.nextInt(9)
+                        if (moves[i] == null) {
+                            moves[i] = false
+                            playerTurn.value = true
+                            break
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -109,16 +148,18 @@ fun Header(playerTurn: Boolean) {
             .background(playerBoxColor))
         {
             Text(text = "Player", modifier = Modifier
-                                                    .padding(8.dp)
-                                                    .align(Alignment.Center))
+                .padding(8.dp)
+                .align(Alignment.Center))
 
         }
         Spacer(modifier = Modifier.width(50.dp))
 
         Box(modifier = Modifier
-                                .width(100.dp)
-                                .background(aiBoxColor)) {
-            Text(text = "AI", modifier = Modifier.padding(8.dp).align(Alignment.Center))
+            .width(100.dp)
+            .background(aiBoxColor)) {
+            Text(text = "AI", modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.Center))
         }
 
     }
@@ -127,14 +168,14 @@ fun Header(playerTurn: Boolean) {
 @Composable
 fun Board(moves: List<Boolean?>, onTap: (Offset) -> Unit) {
     Box(modifier = Modifier
-                            .aspectRatio(1f)
-                            .padding(32.dp)
-                            .background(Color.LightGray)
-                            .pointerInput(Unit) {
-                                detectTapGestures (
-                                    onTap = onTap
-                                )
-                            }
+        .aspectRatio(1f)
+        .padding(32.dp)
+        .background(Color.LightGray)
+        .pointerInput(Unit) {
+            detectTapGestures(
+                onTap = onTap
+            )
+        }
     ) {
 
         Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize(1f)) {
