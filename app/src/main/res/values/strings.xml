@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">TicTacToe</string>
+    <string name="title_activity_tic_tac_toe">TicTacToe</string>
+    <string name="title_activity_records">Records</string>
+    <string name="title_activity_enter_username">EnterUsername</string>
 </resources>
