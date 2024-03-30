@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -79,13 +83,15 @@ fun Header(playerTurn: Boolean) {
             .background(playerBoxColor))
         {
             Text(text = "Player", modifier = Modifier
-                                            .padding(8.dp)
-                                            .align(Alignment.Center))
+                                                    .padding(8.dp)
+                                                    .align(Alignment.Center))
 
         }
         Spacer(modifier = Modifier.width(50.dp))
 
-        Box(modifier = Modifier.width(100.dp).background(aiBoxColor)) {
+        Box(modifier = Modifier
+                                .width(100.dp)
+                                .background(aiBoxColor)) {
             Text(text = "AI", modifier = Modifier.padding(8.dp).align(Alignment.Center))
         }
 
@@ -94,5 +100,26 @@ fun Header(playerTurn: Boolean) {
 
 @Composable
 fun Board(moves: List<Boolean?>) {
-
+    Box(modifier = Modifier.aspectRatio(1f).padding(32.dp).background(Color.LightGray)) {
+        Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize(1f)) {
+            Row(modifier = Modifier
+                                  .height(2.dp)
+                                  .fillMaxWidth(1f)
+                                  .background(Color.Black)) {}
+            Row(modifier = Modifier
+                                    .height(2.dp)
+                                    .fillMaxWidth(1f)
+                                    .background(Color.Black)) {}
+        }
+        Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize(1f)) {
+            Column(modifier = Modifier
+                                    .width(2.dp)
+                                    .fillMaxHeight(1f)
+                                    .background(Color.Black)) {}
+            Column(modifier = Modifier
+                                    .width(2.dp)
+                                    .fillMaxHeight(1f)
+                                    .background(Color.Black)) {}
+        }
+    }
 }
