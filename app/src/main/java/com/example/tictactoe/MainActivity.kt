@@ -45,6 +45,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+
+enum class Win {
+    PLAYER,
+    AI,
+    DRAW
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,19 +69,60 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//fun calculate_best_decisions() {
-//    val win_state_for_player = mutableStateListOf(
-//        mutableStateListOf(0, 3, 6),
-//        mutableStateListOf(0, 1, 2),
-//        mutableStateListOf(6, 7, 8),
-//        mutableStateListOf(2, 5, 8),
-//        mutableStateListOf(0, 4, 8),
-//        mutableStateListOf(3, 4, 5),
-//        mutableStateListOf(1, 4, 7)
-//    )
-//
-//}
 
+fun gameIsStillGoing(m: List<Boolean?>): Boolean {
+    for (i in 0..8) {
+        if (m[i] == null) {
+            return true
+        }
+    }
+    return false
+}
+fun checkEndGame(m: List<Boolean?>): Win? {
+
+
+
+    val win_states: Set<Set<Int>> = setOf(
+        setOf(0, 3, 6),
+        setOf(0, 1, 2),
+        setOf(6, 7, 8),
+        setOf(2, 5, 8),
+        setOf(0, 4, 8),
+        setOf(3, 4, 5),
+        setOf(1, 4, 7),
+        setOf(6, 4, 2),
+    )
+    var win: Win? = null
+    var flag = false
+    var offset_: Int = 0
+    var tics = mutableSetOf<Int>()
+    var tacs = mutableSetOf<Int>()
+    var pos: Int? = null
+    for (i in 0..2){
+        for(j in 0..2) {
+            pos = i * 3 + j
+            if(m[pos] == true) {
+                tics.add(pos)
+            }
+            else if (m[pos] == false) {
+                tacs.add(pos)
+            }
+        }
+    }
+    for (win_state in win_states) {
+        if (tics.containsAll(win_state)) {
+            win = Win.PLAYER
+            break
+        }
+        else if (tacs.containsAll(win_state)) {
+            win = Win.AI
+            break
+        }
+    }
+    if(win == null && !gameIsStillGoing(m))
+        win = Win.DRAW
+    return win
+}
 
 @SuppressLint("RememberReturnType")
 @Composable
@@ -83,9 +131,11 @@ fun TTTScreen() {
     val playerTurn = remember{ mutableStateOf(true)}
 
     val moves = remember {mutableStateListOf<Boolean?>(true, null, false, null, true, false, null, null, null) }
-
+    val win = remember {
+        mutableStateOf<Win?>(null)
+    }
     val onTap: (Offset) -> Unit = {
-        if (playerTurn.value) {
+        if (playerTurn.value && win.value == null) {
             // x and y are up to 1000. Overall we have 3 position.
             val norm = 1000.0 / 600.0 // Virtual size to real size
             val x = (it.x*norm / 333).toInt()
@@ -99,9 +149,11 @@ fun TTTScreen() {
                 moves[posInMoves] = true
                 // After that AI turn
                 playerTurn.value = false
+                win.value = checkEndGame(moves)
             }
         }
     }
+
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Tic Tac Toe", fontSize = 30.sp, modifier = Modifier.padding(16.dp))
@@ -111,7 +163,7 @@ fun TTTScreen() {
 
         Board(moves, onTap)
 
-        if (!playerTurn.value) {
+        if (!playerTurn.value && win.value == null) {
             CircularProgressIndicator(color = Color.Red, modifier = Modifier.padding(16.dp))
 
             val coroutineScope = rememberCoroutineScope()
@@ -123,13 +175,32 @@ fun TTTScreen() {
                         if (moves[i] == null) {
                             moves[i] = false
                             playerTurn.value = true
+                            win.value = checkEndGame(moves)
                             break
                         }
                     }
                 }
             }
         }
+        when (win.value) {
+            Win.PLAYER -> {
+                Text(text = "Player has won \uD83C\uDF89", fontSize = 25.sp)
+            }
+
+            Win.AI -> {
+                Text(text = "AI has won \uD83D\uDE24", fontSize = 25.sp)
+            }
+
+            Win.DRAW -> {
+                Text(text = "It's a draw \uD83D\uDE33", fontSize = 25.sp)
+            }
+
+            null -> {
+                // Continue the game
+            }
+        }
     }
+
 
 
 }
@@ -177,7 +248,6 @@ fun Board(moves: List<Boolean?>, onTap: (Offset) -> Unit) {
             )
         }
     ) {
-
         Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize(1f)) {
             Row(modifier = Modifier
                                   .height(2.dp)
