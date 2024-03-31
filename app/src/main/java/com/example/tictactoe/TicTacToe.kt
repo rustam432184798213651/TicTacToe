@@ -31,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,16 +57,15 @@ import kotlin.random.Random
 class TicTacToe : ComponentActivity() {
     private lateinit var database: RecordsDatabase
     private lateinit var username: String
-    private var hardLevel: Boolean = false
+    private var level: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.database = RecordsDatabase(this)
         val extras = intent.extras
         if(extras != null) {
             this.username = (extras.getString("username") + "")
-            if(extras.getString("level").equals("hard")) {
-                this.hardLevel = true
-            }
+            this.level = extras.getString("level")
+
         }
 
         setContent {
@@ -76,7 +76,7 @@ class TicTacToe : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    TTTScreen(this.database, this.hardLevel, this.username)
+                    TTTScreen(this.database, this.level, this.username)
                 }
             }
         }
@@ -139,13 +139,10 @@ fun checkEndGame(m: List<Boolean?>): Win? {
     return win
 }
 
-class NextMove(private var m: List<Boolean?>, private var hardLevel: Boolean) {
+class NextMove(private var m: List<Boolean?>, private var level: String?, private var turnCounter: Int) {
     fun getNextMove(): Int? {
         var res: Int? = null
-        if (hardLevel) {
-            res = GFG.main(this.m.toTypedArray())
-        }
-        else {
+        if (level == "easy") {
             while(true) {
                 val i = Random.nextInt(9)
                 if (this.m[i] == null) {
@@ -154,16 +151,24 @@ class NextMove(private var m: List<Boolean?>, private var hardLevel: Boolean) {
                 }
             }
         }
+        else if (level == "medium") {
+            res = GFG.main(this.m.toTypedArray())
+        }
+        else {
+            res = UndefeatedAlg.getNextMove(m, this.turnCounter)
+            this.turnCounter += 1
+        }
         return res
     }
 }
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun TTTScreen(database: RecordsDatabase, hardLevel: Boolean, username: String) {
+fun TTTScreen(database: RecordsDatabase, level: String?, username: String) {
     // true - player's turn, false - AI's turn
     val context = LocalContext.current
     val playerTurn = remember{ mutableStateOf(true) }
+    val turnCounter = remember{ mutableIntStateOf(0) }
     val moves = remember { mutableStateListOf<Boolean?>(null, null, null, null, null, null, null, null, null) }
     val win = remember {
         mutableStateOf<Win?>(null)
@@ -203,7 +208,8 @@ fun TTTScreen(database: RecordsDatabase, hardLevel: Boolean, username: String) {
             LaunchedEffect(key1 = Unit) {
                 coroutineScope.launch {
                     delay(1500L)
-                    val nm = NextMove(moves, hardLevel)
+                    val nm = NextMove(moves, level, turnCounter.intValue)
+                    turnCounter.intValue += 1
                     val nextMove = nm.getNextMove()
                     if(nextMove != null) {
                         moves[nextMove] = false
@@ -232,7 +238,8 @@ fun TTTScreen(database: RecordsDatabase, hardLevel: Boolean, username: String) {
             }
         }
         if (win.value != null) {
-
+            UndefeatedAlg.AItakeCenter = false
+            turnCounter.value = 0
             Button(onClick = {
                 playerTurn.value = true
                 win.value = null
@@ -367,7 +374,137 @@ fun getComposableFromMove(move: Boolean?) {
 
 }
 
+internal object UndefeatedAlg {
+    var AItakeCenter: Boolean = false
+    fun getVulnerablePosition(board: List<Boolean?>, checkForX: Boolean = true): Int? {
+        // Can be optimized but it will be less readable
+//        var vulnerablePosToSet =  hashMapOf(
+//            setOf(0, 3) to 6,
+//            setOf(3, 6) to 0,
+//            setOf(0, 6) to 3,
+//            setOf(0, 1) to 2,
+//            setOf(0, 2) to 1,
+//            setOf(1, 2) to 0,
+//            setOf(6, 7) to 8,
+//            setOf(6, 8) to 7,
+//            setOf(7, 8) to 6,
+//            setOf(2, 5) to 8,
+//            setOf(2, 8) to 5,
+//            setOf(5, 8) to 2,
+//            setOf(0, 4) to 8,
+//            setOf(0, 8) to 4,
+//            setOf(4, 8) to 0,
+//            setOf(3, 4) to 5,
+//            setOf(3, 5) to 4,
+//            setOf(4, 5) to 3,
+//            setOf(1, 4) to 7,
+//            setOf(1, 7) to 4,
+//            setOf(4, 7) to 1,
+//            setOf(6, 4) to 2,
+//            setOf(6, 2) to 4,
+//            setOf(4, 2) to 6
+//        )
+        val winStates: Set<Set<Int>> = setOf(
+            setOf(0, 3, 6),
+            setOf(0, 1, 2),
+            setOf(6, 7, 8),
+            setOf(2, 5, 8),
+            setOf(0, 4, 8),
+            setOf(3, 4, 5),
+            setOf(1, 4, 7),
+            setOf(6, 4, 2),
+        )
+        var vulnerablePosToSet = hashMapOf<Set<Int>, Int>()
 
+        winStates.forEach{ it ->
+
+            it.forEach{it2 ->
+                var lst =  it.toList()
+                var st0 = setOf(lst[1], lst[2])
+                var st1 = setOf(lst[0], lst[2])
+                var st2 = setOf(lst[0], lst[1])
+                vulnerablePosToSet.put(st0, lst[0])
+                vulnerablePosToSet.put(st1, lst[1])
+                vulnerablePosToSet.put(st2, lst[2])
+            }
+        }
+        var positions = mutableSetOf<Int>()
+
+        board.forEachIndexed{index, element ->
+            if (element == checkForX) {
+                positions.add(index)
+            }
+        }
+        for ((key, value) in vulnerablePosToSet) {
+            if(positions.containsAll(key) && board[value] == null) {
+                return value
+            }
+        }
+        return null
+    }
+    fun getNextMove(board: List<Boolean?>, turnCounter: Int): Int {
+        val vulnerableStates: Set<Set<Int>> = setOf(
+            setOf(0, 3),
+            setOf(3, 6),
+            setOf(0, 1),
+            setOf(1, 2),
+            setOf(6, 7),
+            setOf(7, 8),
+            setOf(2, 5),
+            setOf(5, 8),
+            setOf(0, 4),
+            setOf(4, 8),
+            setOf(3, 4),
+            setOf(4, 5),
+            setOf(1, 4),
+            setOf(4, 7),
+            setOf(6, 4),
+            setOf(4, 2)
+        )
+        val winPos = getVulnerablePosition(board, false)
+        if (winPos != null && board[winPos] == null) {
+            return winPos
+        }
+        val vulPos = getVulnerablePosition(board, true)
+        if (vulPos != null && board[vulPos] == null) {
+            return vulPos
+        }
+        if(turnCounter == 0) {
+            if (board[4] == null) {
+                AItakeCenter = true
+                return 4
+            }
+            else {
+                return 0
+            }
+        }
+        else if (turnCounter == 1) {
+            if (AItakeCenter == false) {
+                return 8
+            }
+            else {
+
+                for (i in 1..5 step 2) {
+                    if (board[i] == null) {
+                        return i
+                    }
+                }
+            }
+        }
+        else if (turnCounter == 2) {
+            if(AItakeCenter == false) {
+                return 2
+            }
+        }
+        while(true) {
+            val i = Random.nextInt(9)
+            if (board[i] == null) {
+                return i
+            }
+        }
+
+    }
+}
 // Kotlin program to find the
 // next optimal move for a player
 internal object GFG {

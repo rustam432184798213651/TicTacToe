@@ -93,14 +93,18 @@ fun MyContent(){
 
 
         Button(onClick = {
-            if(label.value == "Hard")
-            {
-                label.value = "Easy"
-                cl.value = Color.Green
+            if(label.value == "Easy") {
+                label.value = "Medium"
+                cl.value = Color.Yellow
             }
-            else {
+            else if(label.value == "Medium")
+            {
                 label.value = "Hard"
                 cl.value = Color.Red
+            }
+            else {
+                label.value = "Easy"
+                cl.value = Color.Green
             }
          }, modifier = Modifier
             .padding(top=20.dp)
