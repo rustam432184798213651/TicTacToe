@@ -3,7 +3,7 @@ package com.example.tictactoe
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
+import android.util.DisplayMetrics
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -19,12 +19,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+
 class EnterUsername : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         setContent {
 
             // Displaying the created elements
@@ -48,6 +54,7 @@ fun MainContent(){
                 )
             }) },
         content = { MyContent()}
+
     )
 }
 
@@ -55,12 +62,15 @@ fun MainContent(){
 // to display editable TextField and a Button
 @Composable
 fun MyContent(){
-
+    val context = LocalContext.current
     var mText by remember { mutableStateOf("") }
 
-    // Creating an editable TextField,
-    // storing the value in mText
-    Column(Modifier.fillMaxWidth()) {
+    val label = remember{mutableStateOf("Easy")}
+    val cl = remember {mutableStateOf(Color.Green)}
+    Column(
+        Modifier
+            .fillMaxHeight(1f)
+            .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         TextField(
             value = mText,
             onValueChange = { mText = it },
@@ -69,18 +79,39 @@ fun MyContent(){
                 .fillMaxWidth()
                 .absolutePadding(10.dp, 100.dp, 10.dp, 0.dp)
         )
-    }
-    val context = LocalContext.current
-    // Creating a Button to display a Toast
-    // consisting mText value upon click
-    Box(Modifier.fillMaxSize(), Alignment.Center){
+
+
         Button(onClick = {
-            context.startActivity(Intent(context, TicTacToe::class.java))
+            if(label.value == "Hard")
+            {
+                label.value = "Easy"
+                cl.value = Color.Green
+            }
+            else {
+                label.value = "Hard"
+                cl.value = Color.Red
+            }
+         }, modifier = Modifier
+            .padding(top=20.dp)
+            .fillMaxWidth(1f)
+            ){
+            Text(label.value, fontSize = 35.sp, color = cl.value)
+        }
+// Creating a Button to display a Toast
+        // consisting mText value upon click
+        Button(onClick = {
+            var i = Intent(context, TicTacToe::class.java)
+            i.putExtra("username", mText)
+            i.putExtra("level", label.value.lowercase())
+            context.startActivity(i)
         },
-            colors = ButtonDefaults.buttonColors()) {
-            Text(text = "Click", color = Color.White)
+            colors = ButtonDefaults.buttonColors(), modifier = Modifier
+                .padding(top=180.dp, bottom=0.dp)
+                .fillMaxWidth()) {
+            Text(text = "Play", color = Color.White, fontSize = 45.sp)
         }
     }
+
 }
 
 // Displaying preview
