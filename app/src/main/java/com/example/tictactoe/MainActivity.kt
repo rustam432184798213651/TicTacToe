@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,11 +39,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -59,37 +62,51 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TicTacToeTheme {
-                // A surface container using the 'background' color from the theme
-                Column(modifier = Modifier.fillMaxSize(),
-                       verticalArrangement = Arrangement.Center,
-                       horizontalAlignment = Alignment.CenterHorizontally
-                    )
-                {
-                    Text(
-                        text = "Menu",
-                        color = Color.Blue,
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(80.dp)
-                    )
-                    Button(onClick = {
-                        val intent = Intent(this@MainActivity, EnterUsername::class.java)
-                        startActivity(intent)
-
-                    }) {
-                        Text(text = "TicTacToe")
-                    }
-
-                    Button(onClick = {
-                        val intent = Intent(this@MainActivity, Records::class.java)
-                        startActivity(intent)
-                    }) {
-                        Text(text = "Records")
-                    }
-
-                }
-            }
+            MyContent2()
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun MyContent2() {
+    TicTacToeTheme {
+        // A surface container using the 'background' color from the theme
+        var context = LocalContext.current
+        Column(modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        )
+        {
+            Text(
+                text = "Menu",
+                color = Color.Blue,
+                fontSize = 70.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(0.dp)
+            )
+            Button(modifier = Modifier.fillMaxWidth().padding(top=400.dp), onClick = {
+                val intent = Intent(context, EnterUsername::class.java)
+                context.startActivity(intent)
+
+            }) {
+                Text(text = "TicTacToe", fontSize = 34.sp)
+            }
+
+            Button(modifier=Modifier.fillMaxWidth().padding(top=15.dp), onClick = {
+                val intent = Intent(context, Records::class.java)
+                context.startActivity(intent)
+            }) {
+                Text(text = "Records", fontSize=34.sp)
+            }
+
+        }
+    }
+}
+
+// Displaying preview
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview2() {
+    MyContent2()
 }
