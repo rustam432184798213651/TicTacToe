@@ -525,7 +525,7 @@ internal object GFG {
     }
 
     // This is the evaluation function as discussed
-    // in the previous article ( http://goo.gl/sJgv68 )
+
     fun evaluate(b: Array<CharArray>): Int {
         // Checking for Rows for X or O victory.
         for (row in 0..2) {
