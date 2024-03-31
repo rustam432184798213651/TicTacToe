@@ -173,6 +173,28 @@ fun TTTScreen(database: RecordsDatabase, level: String?, username: String) {
     val win = remember {
         mutableStateOf<Win?>(null)
     }
+    val win_states: Set<Set<Int>> = setOf(
+        setOf(0, 3, 6),
+        setOf(0, 1, 2),
+        setOf(6, 7, 8),
+        setOf(2, 5, 8),
+        setOf(0, 4, 8),
+        setOf(3, 4, 5),
+        setOf(1, 4, 7),
+        setOf(6, 4, 2),
+    )
+    win_states.forEach{ it ->
+
+        it.forEach{it2 ->
+            var lst =  it.toList()
+            var st0 = setOf(lst[1], lst[2])
+            var st1 = setOf(lst[0], lst[2])
+            var st2 = setOf(lst[0], lst[1])
+            UndefeatedAlg.vulnerablePosToSet.put(st0, lst[0])
+            UndefeatedAlg.vulnerablePosToSet.put(st1, lst[1])
+            UndefeatedAlg.vulnerablePosToSet.put(st2, lst[2])
+        }
+    }
     val onTap: (Offset) -> Unit = {
         if (playerTurn.value && win.value == null) {
             // x and y are up to 1000. Overall we have 3 position.
@@ -261,12 +283,16 @@ fun TTTScreen(database: RecordsDatabase, level: String?, username: String) {
                 Text(text = "Back")
             }
         }
-        if(win.value != null && win.value != Win.DRAW) {
+        if(win.value != null) {
+            var draw = false
+            if(win.value == Win.DRAW) {
+                draw = true
+            }
             var personWon = false
             if(win.value == Win.PLAYER) {
                 personWon = true
             }
-            database.updateRecord(username, personWon)
+            database.updateRecord(username, personWon, draw)
         }
 
     }
@@ -376,6 +402,7 @@ fun getComposableFromMove(move: Boolean?) {
 
 internal object UndefeatedAlg {
     var AItakeCenter: Boolean = false
+    var vulnerablePosToSet = hashMapOf<Set<Int>, Int>()
     fun getVulnerablePosition(board: List<Boolean?>, checkForX: Boolean = true): Int? {
         // Can be optimized but it will be less readable
 //        var vulnerablePosToSet =  hashMapOf(
@@ -404,30 +431,8 @@ internal object UndefeatedAlg {
 //            setOf(6, 2) to 4,
 //            setOf(4, 2) to 6
 //        )
-        val winStates: Set<Set<Int>> = setOf(
-            setOf(0, 3, 6),
-            setOf(0, 1, 2),
-            setOf(6, 7, 8),
-            setOf(2, 5, 8),
-            setOf(0, 4, 8),
-            setOf(3, 4, 5),
-            setOf(1, 4, 7),
-            setOf(6, 4, 2),
-        )
-        var vulnerablePosToSet = hashMapOf<Set<Int>, Int>()
 
-        winStates.forEach{ it ->
 
-            it.forEach{it2 ->
-                var lst =  it.toList()
-                var st0 = setOf(lst[1], lst[2])
-                var st1 = setOf(lst[0], lst[2])
-                var st2 = setOf(lst[0], lst[1])
-                vulnerablePosToSet.put(st0, lst[0])
-                vulnerablePosToSet.put(st1, lst[1])
-                vulnerablePosToSet.put(st2, lst[2])
-            }
-        }
         var positions = mutableSetOf<Int>()
 
         board.forEachIndexed{index, element ->
@@ -435,7 +440,7 @@ internal object UndefeatedAlg {
                 positions.add(index)
             }
         }
-        for ((key, value) in vulnerablePosToSet) {
+        for ((key, value) in this.vulnerablePosToSet) {
             if(positions.containsAll(key) && board[value] == null) {
                 return value
             }

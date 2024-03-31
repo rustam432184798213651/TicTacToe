@@ -107,7 +107,7 @@ class RecordsDatabase(context: Context) {
     }
 
 @SuppressLint("Range")
-fun updateRecord(name: String, personWon: Boolean){
+fun updateRecord(name: String, personWon: Boolean, draw: Boolean = false){
     var db = databaseHelper.readableDatabase
     val selectQuery = "SELECT  * FROM $table_name WHERE name = ?"
     var cursor = db.rawQuery(selectQuery, arrayOf(name))
@@ -115,11 +115,12 @@ fun updateRecord(name: String, personWon: Boolean){
     if(cursor.count == 0) {
         var wins = 0
         var losses = 0
-        if(personWon) {
-            wins += 1
-        }
-        else {
-            losses += 1
+        if(!draw) {
+            if (personWon) {
+                wins += 1
+            } else {
+                losses += 1
+            }
         }
         val values = ContentValues().apply {
             put("name", name)
@@ -129,6 +130,9 @@ fun updateRecord(name: String, personWon: Boolean){
         db.insert(table_name, null, values)
     }
     else {
+        if(draw) {
+            return
+        }
         cursor.moveToNext()
         var wins = cursor.getInt(1)
         var losses = cursor.getInt(2)
