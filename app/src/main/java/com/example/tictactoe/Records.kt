@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.os.Bundle
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +46,7 @@ class Records : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     var allRecords = db.getAll()
+
                     RecordList(records = allRecords)
                 }
             }
@@ -125,8 +129,9 @@ fun updateRecord(name: String, personWon: Boolean){
         db.insert(table_name, null, values)
     }
     else {
-        var wins = cursor.getInt(cursor.getColumnIndex("wins"))
-        var losses = cursor.getInt(cursor.getColumnIndex("losses"))
+        cursor.moveToNext()
+        var wins = cursor.getInt(1)
+        var losses = cursor.getInt(2)
         if (personWon) {
             wins += 1
         }
@@ -138,7 +143,7 @@ fun updateRecord(name: String, personWon: Boolean){
             put("losses", losses)
         }
         db = databaseHelper.writableDatabase
-        db.update("record", values, "id = ?", arrayOf(name))
+        db.update("record", values, "name = ?", arrayOf(name))
     }
 }
     @SuppressLint("Range")
@@ -153,12 +158,12 @@ fun getAll(): List<Record> {
 
     // iterate through the cursor and add the data to the list
     while (cursor.moveToNext()) {
-    val name = cursor.getString(cursor.getColumnIndex("name"))
-    val wins = cursor.getInt(cursor.getColumnIndex("wins"))
-    val losses = cursor.getInt(cursor.getColumnIndex("losses"))
-    list.add(Record(name, wins, losses))
-}
-
+        val name = cursor.getString(cursor.getColumnIndex("name"))
+        val wins = cursor.getInt(cursor.getColumnIndex("wins"))
+        val losses = cursor.getInt(cursor.getColumnIndex("losses"))
+        list.add(Record(name, wins, losses))
+    }
+        list.sortBy{ -1 * it.wins }
 
 
 // close the cursor and database connection
@@ -170,12 +175,12 @@ return list
 
 
 
-fun delete(id: Int) {
+fun delete(name: String) {
     // get the writable database
     val db = databaseHelper.writableDatabase
 
     // delete the data from the table
-    db.delete("record", "id = ?", arrayOf(id.toString()))
+    db.delete("record", "name = ?", arrayOf(name))
 
     // close the database connection
     db.close()
@@ -185,7 +190,16 @@ fun delete(id: Int) {
 }
 @Composable
 fun RecordList(records: List<Record>) {
+    var context = LocalContext.current
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Button(
+            onClick = {
+                      var i = Intent(context, MainActivity::class.java)
+                      context.startActivity(i)
+            }, modifier=Modifier.fillMaxWidth().padding(top= 80.dp)
+        ) {
+            Text("Back", fontSize=35.sp, color = Color.White)
+        }
         records.forEach { record ->
             RecordRow(record)
         }

@@ -85,7 +85,7 @@ fun MyContent2() {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(0.dp)
             )
-            Button(modifier = Modifier.fillMaxWidth().padding(top=400.dp), onClick = {
+            Button(modifier = Modifier.fillMaxWidth().padding(top=300.dp), onClick = {
                 val intent = Intent(context, EnterUsername::class.java)
                 context.startActivity(intent)
 

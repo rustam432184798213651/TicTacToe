@@ -1,8 +1,11 @@
+@file:Suppress("PreviewAnnotationInFunctionWithParameters")
+
 package com.example.tictactoe
 
 
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,6 +43,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tictactoe.ui.theme.TicTacToeTheme
@@ -71,12 +75,14 @@ class TicTacToe : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     TTTScreen(this.database, this.hardLevel, this.username)
                 }
             }
         }
     }
 }
+
 
 
 fun gameIsStillGoing(m: List<Boolean?>): Boolean {
@@ -236,8 +242,19 @@ fun TTTScreen(database: RecordsDatabase, hardLevel: Boolean, username: String) {
             }) {
                 Text(text = "Click to start over")
             }
+            Button(onClick = {
+                playerTurn.value = true
+                win.value = null
+                for (i in 0..8) {
+                    moves[i] = null
+                }
+                var i = Intent(context, EnterUsername::class.java)
+                context.startActivity(i)
+            }) {
+                Text(text = "Back")
+            }
         }
-        if(win.value != null) {
+        if(win.value != null && win.value != Win.DRAW) {
             var personWon = false
             if(win.value == Win.PLAYER) {
                 personWon = true
@@ -543,3 +560,4 @@ internal object GFG {
         var col = 0
     }
 }
+

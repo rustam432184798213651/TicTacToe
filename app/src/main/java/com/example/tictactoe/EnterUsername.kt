@@ -71,13 +71,24 @@ fun MyContent(){
         Modifier
             .fillMaxHeight(1f)
             .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(
+            onClick = {
+                var i = Intent(context, MainActivity::class.java)
+                context.startActivity(i)
+            },
+            modifier=Modifier.fillMaxWidth().padding(top= 80.dp)
+        ) {
+            Text("Back", fontSize=35.sp, color = Color.White)
+        }
+        Text("Enter your name", fontSize=19.sp, modifier=Modifier.padding(top=40.dp))
+        Text("and choose level", fontSize=19.sp)
         TextField(
             value = mText,
             onValueChange = { mText = it },
             label = { Text("Enter username") },
             modifier = Modifier
                 .fillMaxWidth()
-                .absolutePadding(10.dp, 100.dp, 10.dp, 0.dp)
+                .absolutePadding(10.dp, 30.dp, 10.dp, 0.dp)
         )
 
 
@@ -106,7 +117,7 @@ fun MyContent(){
             context.startActivity(i)
         },
             colors = ButtonDefaults.buttonColors(), modifier = Modifier
-                .padding(top=180.dp, bottom=0.dp)
+                .padding(top=110.dp, bottom=0.dp)
                 .fillMaxWidth()) {
             Text(text = "Play", color = Color.White, fontSize = 45.sp)
         }
