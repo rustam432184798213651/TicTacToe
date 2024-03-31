@@ -116,8 +116,8 @@ fun MyContent(){
         // consisting mText value upon click
         Button(onClick = {
             var i = Intent(context, TicTacToe::class.java)
-            i.putExtra("username", mText)
-            i.putExtra("level", label.value.lowercase().filter{ !it.isWhitespace() })
+            i.putExtra("username", mText.filter{ !it.isWhitespace() })
+            i.putExtra("level", label.value.lowercase())
             context.startActivity(i)
         },
             colors = ButtonDefaults.buttonColors(), modifier = Modifier
