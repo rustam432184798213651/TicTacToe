@@ -80,7 +80,7 @@ fun MyContent2() {
         {
             Text(
                 text = "Menu",
-                color = Color.Blue,
+                color = Color.Unspecified,
                 fontSize = 70.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(0.dp)
